@@ -2,6 +2,7 @@
 //ja importacao vai import vai ser em tempo de compilacao e de forma asincrona.  
 import http from 'http'; //padrao module
 import fs from 'fs';
+import rotas from './routes.js';
 
 //metodos sincronos, podem gerar problemas de performace. ( writeFileSync, readFileSync)
 fs.writeFile('./mensagem.txt', 'Ola, TIC em Trilhas do arquivo!', 'utf-8', (erro) => {
@@ -21,14 +22,12 @@ fs.readFile('./mensagem.txt', 'utf-8', (erro, conteudo) => {
     iniciaServidorHttp(conteudo);
 });
 
-function iniciaServidorHttp(mensagem) {
+function iniciaServidorHttp(conteudo) {
     const servidor = http.createServer((req, res) => {
-        res.statusCode = 200;
-        res.setHeader('Content-type', 'text/plain; charset=utf-8');
-        res.end(mensagem);
+      rotas(req, res, { conteudo} ) //entre {representa objeto}
     });
 
-    const porta = 3000;
+    const porta = 3001;
     const host = 'localhost';
 
     servidor.listen(porta, host, () => {
