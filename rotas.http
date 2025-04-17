@@ -20,3 +20,12 @@ content-type: application/json
     "nome": "sugestao",
     "conteudo": "Quero cafe, obrigado"
 }
+
+### Deleta arquivos
+
+DELETE http://localhost:3001/arquivos
+content-type: application/json
+
+{
+    "nome": "sugestao"
+}

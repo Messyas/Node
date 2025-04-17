@@ -129,13 +129,13 @@ export default function rotas(req, res, dado) {
 
             fs.access(`${arquivo.nome}.txt`, fs.constants.W_OK, (erro) => {
                 if (erro) {
-                    console.log('Falha ao  acessar arquivo', erro);
+                    console.log('Falha ao atualizar arquivo', erro);
 
                     res.statusCode = erro.code === 'ENOENT' ? 404 : 403;
 
                     const resposta = {
                         erro: {
-                            mensagem: `Falha ao acessar arquivos ${arquivo.nome}`
+                            mensagem: `Falha ao atualizar arquivos ${arquivo.nome}`
                         }
                     };
 
@@ -175,6 +175,97 @@ export default function rotas(req, res, dado) {
                });
             });
         });
+
+        req.on('error', (erro) => {
+            console.log('Falha ao processar a requisicao', erro);
+
+            res.statusCode = 400;
+
+            const resposta = {
+                erro: {
+                    mensagem: 'Falha ao processar a requisicao'
+                }
+            };
+
+            res.end(JSON.stringify(resposta));
+
+            return;
+        });
+        return;
+    }
+
+    if (req.method === 'DELETE' && req.url === '/arquivos') { 
+        const corpo = []; 
+        //listener de eventos nesse caso so e necessario porque nao temos um identificador de arquivo
+        req.on('data', (parte) => {
+            corpo.push(parte);
+        });
+
+        req.on('end', () => {
+            const arquivo = JSON.parse(corpo);
+            
+            res.statusCode = 400;
+
+            if (!arquivo.nome) {
+                const resposta = {
+                    erro: {
+                        mensagem: `O atributo 'nome' nao foi encontrado, porem e obrigatorio para remocao de arquivos.`
+                    }
+                };
+                res.end(JSON.stringify(resposta));
+
+                return;
+            }
+
+            fs.access(`${arquivo.nome}.txt`, fs.constants.W_OK, (erro) => {
+                if (erro) {
+                    console.log('Falha ao remver arquivo', erro);
+
+                    res.statusCode = erro.code === 'ENOENT' ? 404 : 403;
+
+                    const resposta = {
+                        erro: {
+                            mensagem: `Falha ao remover arquivos ${arquivo.nome}`
+                        }
+                    };
+
+                    res.end(JSON.stringify(resposta));
+
+                    return;
+                }
+                //Operador ? acessa a referencia do arquivo, 
+                // no caso do conteudo foi usado?? para dizer ao node que caso o 
+                //arquivo nao exista, pode usar o '' no lugar
+                fs.rm(`${arquivo.nome}.txt`, (erro) => {
+                if (erro) {
+                    console.log('Falha ao remover arquivo', erro);
+
+                    res.statusCode = 500;
+
+                    const resposta = {
+                        erro: {
+                            mensagem: `Falha ao remover arquivo ${arquivo.nome}`   
+                        }
+                    };
+                    
+                    res.end(JSON.stringify(resposta));
+
+                    return;
+                }
+
+                res.statusCode = 200;
+
+                const resposta = {
+                    mensagem: `Arquivo ${arquivo.nome} remomovido com sucesso`
+                };
+
+                res.end(JSON.stringify(resposta));
+                
+                return;
+               });
+            });
+        });
+
         req.on('error', (erro) => {
             console.log('Falha ao processar a requisicao', erro);
 
