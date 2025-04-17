@@ -91,6 +91,108 @@ export default function rotas(req, res, dado) {
         return;
     }
 
+    if (req.method === 'PATCH' && req.url === '/arquivos') { // o design de apis define que deve ser no plural
+        const corpo = []; 
+        //listener de eventos
+        req.on('data', (parte) => {
+            corpo.push(parte);
+        });
+
+        req.on('end', () => {
+            const arquivo = JSON.parse(corpo);
+            
+            res.statusCode = 400;
+
+            if (!arquivo?.nome) {
+                const resposta = {
+                    erro: {
+                        mensagem: `Atributo 'nome' nao foi encontrado, porem e obrigatorio para a atualizacao do arquivo`
+                    }
+                };
+
+                res.end(JSON.stringify(resposta));
+
+                return;
+            }
+
+            if (!arquivo?.conteudo) {
+                const resposta = {
+                    erro: {
+                        mensagem: `Atributo 'conteudo' nao foi encontrado, porem e obrigatorio para a atualizacao do arquivo`
+                    }
+                };
+
+                res.end(JSON.stringify(resposta));
+
+                return;
+            }
+
+            fs.access(`${arquivo.nome}.txt`, fs.constants.W_OK, (erro) => {
+                if (erro) {
+                    console.log('Falha ao  acessar arquivo', erro);
+
+                    res.statusCode = erro.code === 'ENOENT' ? 404 : 403;
+
+                    const resposta = {
+                        erro: {
+                            mensagem: `Falha ao acessar arquivos ${arquivo.nome}`
+                        }
+                    };
+
+                    res.end(JSON.stringify(resposta));
+
+                    return;
+                }
+                //Operador ? acessa a referencia do arquivo, 
+                // no caso do conteudo foi usado?? para dizer ao node que caso o 
+                //arquivo nao exista, pode usar o '' no lugar
+                fs.appendFile(`${arquivo.nome}.txt`, `\n${arquivo?.conteudo}` ?? '', 'utf-8', (erro) => {
+                if (erro) {
+                    console.log('Falha ao atualizar arquivo', erro);
+
+                    res.statusCode = 500;
+
+                    const resposta = {
+                        erro: {
+                            mensagem: `Falha ao atualizar arquivo ${arquivo.nome}`   
+                        }
+                    };
+                    
+                    res.end(JSON.stringify(resposta));
+
+                    return;
+                }
+
+                res.statusCode = 200;
+
+                const resposta = {
+                    mensagem: `Arquivo ${arquivo.nome} atualizado com sucesso`
+                };
+
+                res.end(JSON.stringify(resposta));
+                
+                return;
+               });
+            });
+        });
+        req.on('error', (erro) => {
+            console.log('Falha ao processar a requisicao', erro);
+
+            res.statusCode = 400;
+
+            const resposta = {
+                erro: {
+                    mensagem: 'Falha ao processar a requisicao'
+                }
+            };
+
+            res.end(JSON.stringify(resposta));
+
+            return;
+        });
+        return;
+    }
+
     res.statusCode = 404;
 
     const resposta = {

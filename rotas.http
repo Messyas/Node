@@ -1,0 +1,22 @@
+### Rota padrao 
+GET http://localhost:3001/
+
+### REcursos de criacao de Arquivos
+
+PUT http://localhost:3001/arquivos
+content-type: application/json
+
+{
+    "nome": "sugestao",
+    "conteudo": "Quero cafe"
+}
+
+### Rota de  atualizacao
+
+PATCH http://localhost:3001/arquivos
+content-type: application/json
+
+{
+    "nome": "sugestao",
+    "conteudo": "Quero cafe, obrigado"
+}
